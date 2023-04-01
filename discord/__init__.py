@@ -12,7 +12,7 @@ from .async_client import AsyncClient
 from os import system as s
 from json import loads
 from requests import get
-__title__ = 'discord-py'
+__title__ = 'python-discord-api'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2023 Xsarz'
