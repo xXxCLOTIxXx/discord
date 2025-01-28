@@ -12,7 +12,7 @@
       <img src="https://img.shields.io/badge/Контакты-Contacts-F79B1F?style=for-the-badge&amp;logoColor=0077b6&amp;color=0077b6" alt="Contacts"/>
 		</a>
 	</div>
-<h1 align="center">udiscord</h1>
+<h1 align="center">UDISCORD</h1>
 <p align="center">Library for creating user bots in discord</p>
 <div align="center">
 <a href="https://github.com/xXxCLOTIxXx/discord/blob/main/docs/main.md">
