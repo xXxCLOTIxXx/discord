@@ -10,10 +10,19 @@ class RateLimited(Exception):
 		Exception.__init__(*args, **kwargs)
 
 
+class InsufficientRights(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+class InvalidLoginOrPassword(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
 
 
 errors = {
-	40062: RateLimited
+	40062: RateLimited,
+	50013: InsufficientRights,
+	50035: InvalidLoginOrPassword
 }
 
 def checkException(data):
