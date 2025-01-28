@@ -4,10 +4,10 @@ with open("README.md", "r") as file:
 	long_description = file.read()
 
 link = 'https://github.com/xXxCLOTIxXx/discord/archive/refs/heads/main.zip'
-ver = '1.0'
+ver = '1.2'
 
 setup(
-	name = "python-discord-api",
+	name = "udiscord",
 	version = ver,
 	url = "https://github.com/xXxCLOTIxXx/discord",
 	download_url = link,
@@ -33,7 +33,9 @@ setup(
 	],
 	install_requires = [
 		"requests",
-		"aiohttp"
+		"ujson",
+		"logging",
+		"websocket-client"
 	],
 	packages = find_packages()
 )
