@@ -7,7 +7,7 @@ Enjoy using!
 from .utils.objects import *
 from .utils import exceptions, log
 from .utils.logger import logging
-from .ws.event_types import EventType
+from .utils.objects.event.event_types import EventType
 
 from .client import Client
 #from .async_client import AsyncClient
@@ -20,7 +20,7 @@ __title__ = 'udiscord'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2025 Xsarz'
-__version__ = '1.2'
+__version__ = '1.3'
 
 
 """

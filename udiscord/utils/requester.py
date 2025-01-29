@@ -1,4 +1,5 @@
 from .exceptions import *
+from . import log
 
 from requests import Session
 from aiohttp import ClientSession
@@ -21,12 +22,13 @@ class Requester:
 
 
 	def make_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200, proxies: dict = None):
-
 		response = self.session.request(method, f"{self.web_api}{endpoint}", data=dumps(body) if body else None, headers=self.headers(), proxies=proxies)
+		log.debug(f"[https][{method}][{endpoint}][{response.status_code}]: {body}")
 		return checkException(response.text) if response.status_code != allowed_code else response
 
 
 	async def make_async_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200):
 		async with ClientSession() as asyncSession:
 			response = await asyncSession.request(method, f"{self.web_api}{endpoint}", data=dumps(body) if body else None, headers=self.headers())
+			log.debug(f"[https][{method}][{endpoint}][{response.status}]: {body}")
 			return checkException(await response.text()) if response.status != allowed_code else response

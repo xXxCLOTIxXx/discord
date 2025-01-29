@@ -2,7 +2,7 @@ from .utils.objects import *
 from .utils.requester import Requester
 from .utils import exceptions
 
-from .ws import Socket
+from .ws import Socket, EventType
 
 from json import loads
 
@@ -10,7 +10,14 @@ class Client(Socket):
 	def __init__(self, proxies: dict = None, sock_trace: bool = False):
 		self.req = Requester()
 		self.proxies = proxies
+		self.account: AccountInfo = AccountInfo({})
 		Socket.__init__(self, sock_trace=sock_trace)
+
+		self.add_handler(EventType.READY, self._on_connect)
+	
+
+	def _on_connect(self, event: AccountInfo):
+		self.account = event
 
 
 	def login(self, login: str, password: str, login_source: str = None, gift_code_sku_id: str = None):
@@ -26,7 +33,6 @@ class Client(Socket):
 			"login_source": login_source,
 			"gift_code_sku_id": gift_code_sku_id
 		}
-		print(data)
 
 		resp = LoginInfo(loads(self.req.make_request(method="POST", endpoint="/auth/login", body=data, proxies=self.proxies).text))
 		self.req.token = resp.token
@@ -37,6 +43,7 @@ class Client(Socket):
 	def login_token(self, token: str):
 		self.req.token = token
 		info = self.conditional_start()
+		if not info.token: raise exceptions.InvalidAuthorizationToken(info.data)
 		self.connect()
 		return info
 

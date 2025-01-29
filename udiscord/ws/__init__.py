@@ -1,3 +1,3 @@
 #from .async_socket import AsyncSocket
 from .socket import Socket
-from .event_types import EventType
+from ..utils.objects.event.event_types import EventType

@@ -4,7 +4,6 @@ class UnknownError(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
-
 class RateLimited(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
@@ -17,6 +16,12 @@ class InsufficientRights(Exception):
 class InvalidLoginOrPassword(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
+
+
+class InvalidAuthorizationToken(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
 
 
 errors = {

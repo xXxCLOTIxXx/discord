@@ -6,7 +6,7 @@ from ujson import dumps, loads
 from ..utils.requester import Requester
 from .. import log
 from .socket_handler import Handler
-
+from traceback import print_exc
 
 class Socket(Handler):
 	heartbeat_started: bool = False
@@ -60,6 +60,7 @@ class Socket(Handler):
 			self.handle_data(data)
 		except Exception as e:
 			log.warning(f"[socket][resolve] Error while resolve data : {e}")
+			print_exc()
 
 
 	def start_heartbeat(self):
@@ -84,6 +85,7 @@ class Socket(Handler):
 			self.send({"op": 1, "d": None})
 
 	def send(self, data: str | dict | bytes):
+		if not self.active: return
 		log.debug(f"[send] sending data: {data}")
 		data = data if isinstance(data, bytes) else dumps(data)
 		self.socket.send(data)
