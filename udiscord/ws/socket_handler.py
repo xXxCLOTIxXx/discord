@@ -1,4 +1,6 @@
-from .. import Event, log
+from .. import log
+from ..utils.objects import AccountInfo, Event
+from ..utils.objects.event.event_types import EventType
 
 
 class Handler:
@@ -13,12 +15,21 @@ class Handler:
 		if t:self.call(data, t)
 
 	def call(self, data: dict, type: str):
-		data = Event(data, type)
-		if type in self.handlers.keys():
-			for func in self.handlers[type]:
-				try:func(data)
-				except Exception as e:
-					log.error(f"[event][{func}]Error: {e}")
+		if type in self.handlers or EventType.ANY in self.handlers:
+			match type:
+				case EventType.READY:
+					data = AccountInfo(data)
+				case _:
+					data = Event(data, type)
+			for i in (EventType.ANY, type):
+				if i not in self.handlers:
+					continue
+				for func in self.handlers[i]:
+					try:
+						if i == EventType.ANY:func(data, type)
+						else:func(data)
+					except Exception as e:
+						log.error(f"[event][{func}]Error: {e}")
 
 	def event(self, type: str):
 		def registerHandler(handler):

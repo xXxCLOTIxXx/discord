@@ -3,7 +3,7 @@ from . import UserProfile, Guild, Channel
 class Invites:
     def __init__(self, data: list):
         self.data: dict = data
-        self.count: int = len(data)
+        self.size: int = len(data)
         self.invites: list[Invite] = list()
         for i in data:
             self.invites.append(
