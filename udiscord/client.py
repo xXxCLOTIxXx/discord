@@ -7,6 +7,22 @@ from .ws import Socket, EventType
 from json import loads
 
 class Client(Socket):
+	"""
+	The main client class of the library for Discord user bots.
+
+	Inherits from Socket to work with Discord's WebSocket API in real time.  
+	Provides methods for automating actions, managing the account, and interacting with Discord.
+
+	Arguments:
+	- proxies: dict = None — proxy for the connection.
+	- sock_trace: bool = False — enables WebSocket connection debugging.
+
+	Data available in the class (besides functions):
+	- Client.token: str — token after authorization.
+	- Client.userId: int — account ID after logging in.
+	- Client.account: AccountInfo — a class containing all account information received after connecting to the socket.
+	"""
+
 	def __init__(self, proxies: dict = None, sock_trace: bool = False):
 		self.req = Requester()
 		self.proxies = proxies
@@ -16,8 +32,31 @@ class Client(Socket):
 		self.add_handler(EventType.READY, self._on_connect)
 	
 
+	def __repr__(self) -> str:
+		attrs = [
+			('token', self.token),
+			('userId', self.userId)
+		]
+		inner = ' '.join('%s=%r' % t for t in attrs)
+		return f"<class '{self.__class__.__name__}' {inner}>"
+
+
+	def __del__(self):
+		if self.token:
+			self.logout()
+
+
+
 	def _on_connect(self, event: AccountInfo):
 		self.account = event
+
+	@property
+	def token(self):
+		return self.req.token
+
+	@property
+	def userId(self):
+		return self.req.userId
 
 
 	def login(self, login: str, password: str, login_source: str = None, gift_code_sku_id: str = None):
@@ -36,14 +75,19 @@ class Client(Socket):
 
 		resp = LoginInfo(loads(self.req.make_request(method="POST", endpoint="/auth/login", body=data, proxies=self.proxies).text))
 		self.req.token = resp.token
+		self.req.userId = resp.userId
 		self.connect()
 		return resp
 
 
 	def login_token(self, token: str):
+		"""
+		`Log in to your account by token`
+		"""
 		self.req.token = token
 		info = self.conditional_start()
 		if not info.token: raise exceptions.InvalidAuthorizationToken(info.data)
+		self.req.userId = info.userId
 		self.connect()
 		return info
 
@@ -59,7 +103,9 @@ class Client(Socket):
 
 		resp = self.req.make_request(method="POST", endpoint="/auth/logout", body=data, allowed_code=204, proxies=self.proxies).status_code
 		self.req.token = None
-		self.disconnect()
+		self.req.userId = None
+		if self.active:self.disconnect()
+		self.account = AccountInfo({})
 		return resp
 
 
@@ -108,12 +154,39 @@ class Client(Socket):
 		data = {"content": message}
 		return Message(loads(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).text))
 
+	def edit_message(self, channelId: int, message: str, messageId: int) -> dict:
+		"""
+		`Edit message`
+			**channelId - Channel ID [TYPE: int]
+			**message - Your message [TYPE: str]
+			**messageId - Message ID [TYPE: int]
+		"""
+
+		data = {"content": message}
+		return Message(loads(self.req.make_request(method="PATCH", endpoint=f"/channels/{channelId}/messages/{messageId}", body=data, proxies=self.proxies).text))
+
+	def reply_message(self, channelId: int, message: str, messageId: int, guildId: int = None) -> dict:
+		"""
+		`Reply to message`
+			**channelId - Channel ID [TYPE: int]
+			**message - Your message [TYPE: str]
+			**messageId - Message ID [TYPE: int]
+			**guildId - server ID [TYPE: int | None]
+		"""
+		data = {"content": message, "message_reference": {
+			"channel_id": channelId,
+			"message_id": messageId
+		}}
+		if guildId: data["guild_id"]=guildId
+		return Message(loads(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).text))
+
+
 
 	def delete_message(self, channelId: int, messageId: int) -> dict:
 		"""
 		`Delete a message from a channel`
 			**channelId - Channel ID [TYPE: int]
-			**messageId - Message ID [TYPE: str]
+			**messageId - Message ID [TYPE: int]
 		"""
 		return self.req.make_request(method="DELETE", endpoint=f"/channels/{channelId}/messages/{messageId}", allowed_code=204, proxies=self.proxies).status_code
 
