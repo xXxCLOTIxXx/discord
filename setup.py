@@ -4,7 +4,7 @@ with open("README.md", "r") as file:
 	long_description = file.read()
 
 link = 'https://github.com/xXxCLOTIxXx/discord/archive/refs/heads/main.zip'
-ver = '1.3'
+ver = '1.3.4'
 
 setup(
 	name = "udiscord",
@@ -35,7 +35,8 @@ setup(
 		"requests",
 		"ujson",
 		"logging",
-		"websocket-client"
+		"websocket-client",
+		"colorama"
 	],
 	packages = find_packages()
 )
