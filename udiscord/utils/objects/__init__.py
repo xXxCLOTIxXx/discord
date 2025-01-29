@@ -1,3 +1,5 @@
+from .message import Message
+
 from .objects import *
 from .event import *
 from .invites import *

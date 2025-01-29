@@ -1,7 +1,7 @@
 """
+Unofficial library for creating user bots for Discord.  
+Allows automating actions, managing an account, and interacting with the Discord API without using an official bot.
 Author: Xsarz
-
-Enjoy using!
 """
 
 from .utils.objects import *
@@ -13,19 +13,23 @@ from .client import Client
 #from .async_client import AsyncClient
 
 
-from os import system as s
-from ujson import loads
-from requests import get
+def set_log_level(level: int):
+	"""
+	Sets the logging level.
+
+	:param level: The new logging level (e.g., logging.DEBUG, logging.ERROR).
+	"""
+	log.set_level(level)
+
 __title__ = 'udiscord'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2025 Xsarz'
-__version__ = '1.3'
+__version__ = '1.3.4'
 
 
-"""
-__newest__ = loads(get("https://pypi.org/pypi/python-discord-api/json").text)["info"]["version"]
+from requests import get
+try:__newest__ = get("https://pypi.org/pypi/udiscord/json").json().get("info", {}).get("version", __version__)
+except:__newest__=__version__
 if __version__ != __newest__:
-	s('cls || clear')
-	print(f'\033[38;5;214m{__title__} made by {__author__}\nPlease update the library. Your version: {__version__}  A new version:{__newest__}\033[0m')
-"""
+	log.warning(f'{__title__} made by {__author__}. Please update the library. Your version: {__version__}  A new version:{__newest__}')

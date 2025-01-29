@@ -10,6 +10,7 @@ class Requester:
 		self.web_api = "https://discord.com/api/v9"
 		self.session = Session()
 		self.token = None
+		self.userId = None
 
 	def headers(self):
 		headers = {
