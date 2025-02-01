@@ -1,4 +1,7 @@
 <body>
+	<h1 align="center">
+		<img src="docs/res/banner.png" alt="UDISCORD">
+	</h1>
 	<p align="center">
 	    <a href="https://github.com/xXxCLOTIxXx/discord/releases"><img src="https://img.shields.io/github/v/release/xXxCLOTIxXx/discord" alt="GitHub release" />
 	    <a href="https://github.com/xXxCLOTIxXx/discordy/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="licence" /></a>
@@ -18,7 +21,6 @@ pip install git+https://github.com/xXxCLOTIxXx/discord.git
 ```
  
 </div>
-<h1 align="center">UDISCORD</h1>
 <p align="center">Library for creating user bots in discord</p>
 <div align="center">
 <a href="https://github.com/xXxCLOTIxXx/discord/blob/main/docs/index.md">
