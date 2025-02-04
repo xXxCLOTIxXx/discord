@@ -29,7 +29,8 @@ setup(
 		"xsarz",
 		"official",
 		"sync",
-		"async"
+		"async",
+		"udiscord"
 	],
 	install_requires = [
 		"requests",
