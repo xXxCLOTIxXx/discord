@@ -5,7 +5,7 @@ Author: Xsarz
 """
 
 from .utils.objects import *
-from .utils import exceptions, log
+from .utils import exceptions, log, get_userId_from_token
 from .utils.logger import logging
 from .utils.objects.event.event_types import EventType
 
@@ -25,7 +25,7 @@ __title__ = 'udiscord'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2025 Xsarz'
-__version__ = '1.3.4'
+__version__ = '1.3.5'
 
 
 from requests import get
