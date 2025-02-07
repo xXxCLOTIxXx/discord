@@ -31,6 +31,9 @@ Understanding the objects within UDISCORD.
 ## 📝 **[Logging Configuration](pages/logging.md)**
 Setting up logging for better traceability.
 
+## 🕳 **[Deeper Level](pages/more.md)**
+If the built-in features aren't enough for you
+
 ---
 
 ## 🔗 **[Examples](https://github.com/xXxCLOTIxXx/discord/tree/main/examples)**
