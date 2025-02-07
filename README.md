@@ -1,10 +1,10 @@
 <body>
 	<h1 align="center">
-		<img src="docs/res/banner.png" alt="UDISCORD">
+		<img src="https://github.com/xXxCLOTIxXx/discord/blob/main/docs/res/banner.png" alt="UDISCORD">
 	</h1>
 	<p align="center">
 	    <a href="https://github.com/xXxCLOTIxXx/discord/releases"><img src="https://img.shields.io/github/v/release/xXxCLOTIxXx/discord" alt="GitHub release" />
-	    <a href="https://github.com/xXxCLOTIxXx/discordy/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="licence" /></a>
+	    <a href="https://github.com/xXxCLOTIxXx/discord/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="licence" /></a>
 	    <a href="https://github.com/xXxCLOTIxXx/discord/blob/main/docs/index.md"><img src="https://img.shields.io/website?down_message=failing&label=docs&up_color=green&up_message=passing&url=https://github.com/xXxCLOTIxXx/discord/blob/main/docs/index.md" alt="docs" /></a>
 	</p>
 	<div align="center">

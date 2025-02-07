@@ -1,0 +1,6 @@
+requests
+ujson
+logging
+websocket-client
+colorama
+aiohttp
