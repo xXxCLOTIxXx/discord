@@ -4,17 +4,15 @@ from .utils import exceptions
 
 from .ws import Socket, EventType
 
-from json import loads
-
 class Client(Socket):
 	"""
 	The main client class of the library for Discord user bots.
-
 	Inherits from Socket to work with Discord's WebSocket API in real time.  
 	Provides methods for automating actions, managing the account, and interacting with Discord.
 
-	Arguments:
+	Arguments :
 	- proxies: dict = None — proxy for the connection.
+	- sock_trace: bool = True - whether to connect the socket (if you disconnect it, events and other related things will not work).
 	- sock_trace: bool = False — enables WebSocket connection debugging.
 
 	Data available in the class (besides functions):
@@ -23,7 +21,8 @@ class Client(Socket):
 	- Client.account: AccountInfo — a class containing all account information received after connecting to the socket.
 	"""
 
-	def __init__(self, proxies: dict = None, sock_trace: bool = False):
+	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False):
+		self.socket_enable=socket_enable
 		self.req = Requester()
 		self.proxies = proxies
 		self.account: AccountInfo = AccountInfo({})
@@ -73,10 +72,10 @@ class Client(Socket):
 			"gift_code_sku_id": gift_code_sku_id
 		}
 
-		resp = LoginInfo(loads(self.req.make_request(method="POST", endpoint="/auth/login", body=data, proxies=self.proxies).text))
+		resp = LoginInfo(self.req.make_request(method="POST", endpoint="/auth/login", body=data, proxies=self.proxies).json())
 		self.req.token = resp.token
 		self.req.userId = resp.userId
-		self.connect()
+		if self.socket_enable:self.connect()
 		return resp
 
 
@@ -88,7 +87,7 @@ class Client(Socket):
 		info = self.conditional_start()
 		if not info.token: raise exceptions.InvalidAuthorizationToken(info.data)
 		self.req.userId = info.userId
-		self.connect()
+		if self.socket_enable:self.connect()
 		return info
 
 	def qrcode_auth(self, code: str, temporary_token: bool = False) -> int:
@@ -102,6 +101,7 @@ class Client(Socket):
 		:param temporary_token: If True, a temporary token will be issued instead of a permanent session.
 		:return: The HTTP status code of the authentication request.
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		handshake = self.create_remote_auth_handshake(code)
 		return self.remote_auth(handshake, temporary_token)
 
@@ -118,7 +118,7 @@ class Client(Socket):
 		data = {
 			"fingerprint": code
 		}
-
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return self.req.make_request(method="POST", endpoint="/users/@me/remote-auth", body=data, proxies=self.proxies).json().get("handshake_token")
 
 
@@ -134,7 +134,7 @@ class Client(Socket):
 			"handshake_token": handshake,
 			"temporary_token": temporary_token
 		}
-
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return self.req.make_request(method="POST", endpoint="/users/@me/remote-auth/finish", body=data, proxies=self.proxies, allowed_code=204).status_code
 
 
@@ -142,13 +142,15 @@ class Client(Socket):
 	def logout(self) -> int:
 		"""
 		`Sign out of your account`
+
+		:return: HTTP status code of the request. (204 on success)
 		"""
 
 		data = {
 			"provider": None,
 			"voip_provider": None
 		}
-
+		if not self.token: raise exceptions.UnauthorizedClientError
 		resp = self.req.make_request(method="POST", endpoint="/auth/logout", body=data, allowed_code=204, proxies=self.proxies).status_code
 		self.req.token = None
 		self.req.userId = None
@@ -164,8 +166,8 @@ class Client(Socket):
 
 			*size - Message list length [TYPE: int] [Default: 50]
 		"""
-
-		return ChannelMessages(loads(self.req.make_request(method="GET", endpoint=f"/channels/{channelId}/messages?limit={size}", proxies=self.proxies).text))
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return ChannelMessages(self.req.make_request(method="GET", endpoint=f"/channels/{channelId}/messages?limit={size}", proxies=self.proxies).json())
 
 	def get_user_info(self, userId: int, with_mutual_guilds: bool = True, with_mutual_friends_count: bool = True) -> UserProfile:
 		"""
@@ -175,8 +177,8 @@ class Client(Socket):
 			*with_mutual_guilds - Get shared servers [TYPE: bool] [Default: True]
 			*with_mutual_friends_count - Get mutual friends [TYPE: bool] [Default: True]
 		"""
-
-		return UserProfile(loads(self.req.make_request(method="GET", endpoint=f"/users/{userId}/profile?with_mutual_guilds={with_mutual_guilds}&with_mutual_friends_count={with_mutual_friends_count}", proxies=self.proxies).text))
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return UserProfile(self.req.make_request(method="GET", endpoint=f"/users/{userId}/profile?with_mutual_guilds={with_mutual_guilds}&with_mutual_friends_count={with_mutual_friends_count}", proxies=self.proxies).json())
 
 
 	def get_me_info(self) -> dict:
@@ -185,6 +187,7 @@ class Client(Socket):
 
 		:return: A dictionary containing the user's profile data.
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return self.req.make_request(method="GET", endpoint="/users/@me", proxies=self.proxies).json()
 
 
@@ -211,6 +214,7 @@ class Client(Socket):
 
 		if mode not in modes:
 			raise exceptions.WrongModeError(mode)
+		if not self.token: raise exceptions.UnauthorizedClientError
 
 		data = {"settings": modes.get(mode)}
 		return self.req.make_request(method="PATCH", endpoint="/users/@me/settings-proto/1", body=data, proxies=self.proxies).json()["settings"]
@@ -219,15 +223,15 @@ class Client(Socket):
 		"""
 		`Get a list of channels on an account`
 		"""
-
-		return Channels(loads(self.req.make_request(method="GET", endpoint=f"/users/@me/channels", proxies=self.proxies).text))
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return Channels(self.req.make_request(method="GET", endpoint=f"/users/@me/channels", proxies=self.proxies).json())
 
 	def get_my_guilds(self) -> Guilds:
 		"""
 		`Get the servers you belong to`
 		"""
-
-		return Guilds(loads(self.req.make_request(method="GET", endpoint=f"/users/@me/guilds", proxies=self.proxies).text))
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return Guilds(self.req.make_request(method="GET", endpoint=f"/users/@me/guilds", proxies=self.proxies).json())
 
 	def send_message(self, channelId: int, message: str) -> Message:
 		"""
@@ -235,9 +239,9 @@ class Client(Socket):
 			**channelId - Channel ID [TYPE: int]
 			**message - Your message [TYPE: str]
 		"""
-
+		if not self.token: raise exceptions.UnauthorizedClientError
 		data = {"content": message}
-		return Message(loads(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).text))
+		return Message(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).json())
 
 	def edit_message(self, channelId: int, message: str, messageId: int) -> Message:
 		"""
@@ -246,9 +250,9 @@ class Client(Socket):
 			**message - Your message [TYPE: str]
 			**messageId - Message ID [TYPE: int]
 		"""
-
+		if not self.token: raise exceptions.UnauthorizedClientError
 		data = {"content": message}
-		return Message(loads(self.req.make_request(method="PATCH", endpoint=f"/channels/{channelId}/messages/{messageId}", body=data, proxies=self.proxies).text))
+		return Message(self.req.make_request(method="PATCH", endpoint=f"/channels/{channelId}/messages/{messageId}", body=data, proxies=self.proxies).json())
 
 	def reply_message(self, channelId: int, message: str, messageId: int, guildId: int = None) -> Message:
 		"""
@@ -258,12 +262,13 @@ class Client(Socket):
 			**messageId - Message ID [TYPE: int]
 			**guildId - server ID [TYPE: int | None]
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		data = {"content": message, "message_reference": {
 			"channel_id": channelId,
 			"message_id": messageId
 		}}
 		if guildId: data["guild_id"]=guildId
-		return Message(loads(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).text))
+		return Message(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).json())
 
 
 
@@ -272,7 +277,10 @@ class Client(Socket):
 		`Delete a message from a channel`
 			**channelId - Channel ID [TYPE: int]
 			**messageId - Message ID [TYPE: int]
+			
+			:return: HTTP status code of the request. (204 on success)
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return self.req.make_request(method="DELETE", endpoint=f"/channels/{channelId}/messages/{messageId}", allowed_code=204, proxies=self.proxies).status_code
 
 
@@ -291,20 +299,8 @@ class Client(Socket):
 		`Retrieve all invites for a channel`
 			**channelId - Channel ID [TYPE: int]
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return Invites(self.req.make_request(method="GET", endpoint=f"/channels/{channelId}/invites", proxies=self.proxies).json())
-
-	
-	def join_guild(self, invite_code: str):
-		"""
-		Attempts to join a guild using an invite code.
-
-		IMPORTANT: This method is not working yet.
-
-		:param invite_code: A string containing the invite code.
-		:return: The server response status code.
-		"""
-		raise NotImplementedError("join_guild is not implemented yet.")
-		return self.req.make_request(method="POST", endpoint=f"/invites/{invite_code}", proxies=self.proxies, body={"session_id": self.account.data.get("session_id")}).json()
 
 
 	def create_invite(self, channelId: int, max_age: int = 86400) -> Invite:
@@ -315,6 +311,7 @@ class Client(Socket):
 		:param max_age: The invite's lifetime in seconds (default is 86400 seconds = 24 hours).
 		:return: An Invite object.
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		Invite(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/invites", proxies=self.proxies, body={"max_age": max_age}).json())
 
 
@@ -324,8 +321,9 @@ class Client(Socket):
 
 		:param guildId: The ID of the guild to leave.
 		:param lurking: If True, the user will remain in the guild in a "lurking" (invisible presence) mode.
-		:return: The server response status code (204 on success).
+		:return: HTTP status code of the request. (204 on success)
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return self.req.make_request(method="DELETE", endpoint=f"/users/@me/guilds/{guildId}", allowed_code=204, proxies=self.proxies, body={"lurking": lurking}).status_code
 
 
@@ -339,4 +337,82 @@ class Client(Socket):
 		"""
 		`Retrieve metadata about the current location`
 		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
 		return LocationMetadata(self.req.make_request(method="GET", endpoint=f"/auth/location-metadata", proxies=self.proxies).json())
+
+	def check_username_taken(self, username	: str) -> bool:
+		"""
+		`Checks if the username is busy`
+
+		:param username: username for check
+		:return: True or False
+		"""
+		return self.req.make_request(method="POST", endpoint="/users/@me/pomelo-attempt" if self.token else "/unique-username/username-attempt-unauthed", proxies=self.proxies, body={"username": username}).json()["taken"]
+
+
+	def resend_verify_code(self) -> int:
+		"""
+		`resend the confirmation code by email`
+
+		:return: HTTP status code of the request. (204 on success)
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="POST", endpoint=f"/auth/verify/resend", proxies=self.proxies, allowed_code=204).status_code
+	
+	def forgot_password_request(self, email: str) -> int:
+		"""
+		Sends a password reset email.
+
+		:param email: The email address associated with the account.
+		:return: HTTP status code of the request. (204 on success)
+		"""
+		return self.req.make_request(method="POST", endpoint=f"/auth/forgot", body={"login": email}, proxies=self.proxies, allowed_code=204).status_code
+	
+	def edit_profile(self, bio: str = None, pronouns: str = None, accent_color: str = None) -> UserProfile:
+		"""
+		Edits the user's profile.
+
+		:param bio: New biography text (optional).
+		:param pronouns: New pronouns (optional) (like "he / his").
+		:param accent_color: New accent color in hex format (e.g., "#FF5733") (optional).
+		:return: UserProfile object.
+		:raises: exceptions.ArgumentNotSpecifiedError if no parameters are provided.
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		data = {}
+		if bio is None and pronouns is None and accent_color is None: raise exceptions.ArgumentNotSpecifiedError
+		if bio: data["bio"]=bio
+		if pronouns: data["pronouns"]=pronouns
+		if accent_color: data["accent_color"]=int(accent_color[1:], 16)
+		return UserProfile(self.req.make_request(method="PATCH", endpoint=f"/users/@me/profile", proxies=self.proxies, body=data).json())
+
+
+	def delete_friend(self, userId: int) -> int:
+		"""
+		Removes a user from the friend list.
+
+		:param userId: The ID of the user to remove.
+		:return: HTTP status code of the request. (204 on success)
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="DELETE", endpoint=f"/users/@me/relationships/{userId}", proxies=self.proxies, allowed_code=204).status_code
+
+	def accept_friend_request(self, userId: int) -> int:
+		"""
+		Accepts a friend request from a user.
+
+		:param userId: The ID of the user whose request is being accepted.
+		:return: HTTP status code of the request. (204 on success)
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="PUT", endpoint=f"/users/@me/relationships/{userId}", proxies=self.proxies, body={}, allowed_code=204).status_code
+	
+	def ignore_friend_request(self, userId: int) -> int:
+		"""
+		Ignores (declines) a friend request from a user.
+
+		:param userId: The ID of the user whose request is being ignored.
+		:return: HTTP status code of the request. (204 on success)
+		""" 
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.delete_friend(userId)
