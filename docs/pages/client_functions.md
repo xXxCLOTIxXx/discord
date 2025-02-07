@@ -10,6 +10,9 @@ The `Client` class accepts the following arguments during initialization:
 
 - **`proxies: dict = None`**  
   A dictionary for configuring proxies to use for the connection. This is useful if you need to route your traffic through a specific proxy server.
+  
+- **`socket_enable: bool = True`**
+  Whether to connect the socket (if you disconnect it, events and other related things will not work).
 
 - **`sock_trace: bool = False`**  
   Enables WebSocket connection debugging if set to `True`. This provides detailed logs of the WebSocket connection and can be helpful for debugging issues with the connection or interactions with Discord’s API.

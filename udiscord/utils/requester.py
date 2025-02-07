@@ -23,7 +23,7 @@ class Requester:
 
 
 	def make_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200, proxies: dict = None) -> Response:
-		response = self.session.request(method, f"{self.web_api}{endpoint}", data=dumps(body) if body else None, headers=self.headers(), proxies=proxies)
+		response = self.session.request(method, f"{self.web_api}{endpoint}", data=dumps(body) if body is not None else None, headers=self.headers(), proxies=proxies)
 		log.debug(f"[https][{method}][{endpoint}][{response.status_code}]: {body}")
 		return checkException(response.text) if response.status_code != allowed_code else response
 

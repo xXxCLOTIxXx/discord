@@ -86,7 +86,9 @@ class Socket(Handler):
 			self.send({"op": 1, "d": None})
 
 	def send(self, data: str | dict | bytes):
-		if not self.active or not self.socket: return
+		if not self.active or not self.socket:
+			log.debug(f"[socket][send][error]: socket is disabled or not running.")
+			return
 		log.debug(f"[socket][send]: {data}")
 		data = data if isinstance(data, bytes) else dumps(data)
 		self.socket.send(data)
