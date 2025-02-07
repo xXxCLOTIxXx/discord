@@ -62,7 +62,7 @@ This approach allows you to handle different types of exceptions with different 
 
 ---
 
-### **5. Handling error groups**
+### **4. Handling error groups**
 
 There are 2 groups of main errors in the library. server errors and library errors (server errors are those answered by discord, and library errors are caused by incorrectly specifying arguments, lack of authorization, etc.)
 
