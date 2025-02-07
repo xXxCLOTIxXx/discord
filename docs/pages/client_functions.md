@@ -1,4 +1,4 @@
-# **Client Class Documentation**
+# **Client**
 
 The `Client` class is the main class for interacting with Discord's API. It provides methods for automating actions, managing accounts, and interacting with Discord.
 
