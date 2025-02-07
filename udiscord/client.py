@@ -12,7 +12,7 @@ class Client(Socket):
 
 	Arguments :
 	- proxies: dict = None — proxy for the connection.
-	- sock_trace: bool = True - whether to connect the socket (if you disconnect it, events and other related things will not work).
+	- socket_enable: bool = True - whether to connect the socket (if you disconnect it, events and other related things will not work).
 	- sock_trace: bool = False — enables WebSocket connection debugging.
 
 	Data available in the class (besides functions):
