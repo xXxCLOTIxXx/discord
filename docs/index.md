@@ -19,7 +19,7 @@ Instructions on how to install UDISCORD.
 ## 🛠️ **[Client Functions](pages/client_functions.md)**
 Detailed guide on using the client functions.
 
-## 🧑‍💻 **[Event Handling and Command Creation](pages/events_and_commands.md)**
+## 💻 **[Event Handling and Command Creation](pages/events_and_commands.md)**
 Learn how to handle events and create commands.
 
 ## ⚠️ **[Exception Handling](pages/exception_handling.md)**
