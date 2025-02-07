@@ -85,7 +85,7 @@ If you encounter any issues during installation, here are some common problems a
 
 ### Missing Dependencies
 
-If you receive an error about missing dependencies, установите их через pip:
+If you receive an error about missing dependencies, install it via pip:
 ```bash
 pip install some_module
 ```
