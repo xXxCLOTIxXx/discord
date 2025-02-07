@@ -62,7 +62,29 @@ This approach allows you to handle different types of exceptions with different 
 
 ---
 
-### **4. Error Class List**
+### **5. Handling error groups**
+
+There are 2 groups of main errors in the library. server errors and library errors (server errors are those answered by discord, and library errors are caused by incorrectly specifying arguments, lack of authorization, etc.)
+
+```python
+try:
+    raise exceptions.ArgumentNotSpecifiedError("Missing required argument")
+except exceptions.DiscordError:
+    print("Server error")
+except exceptions.LibraryError:
+    print("User error")
+```
+
+```python
+try:
+    client.login("email", "password")
+except exceptions.DiscordError as e:
+    print(e)
+```
+
+---
+
+### **5. Error Class List**
 
 For all the exception classes and detailed descriptions, you can view the source code here:  
 [udiscord/utils/exceptions.py](https://github.com/xXxCLOTIxXx/discord/blob/main/udiscord/utils/exceptions.py)
