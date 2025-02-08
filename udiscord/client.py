@@ -12,8 +12,12 @@ class Client(Socket):
 
 	Arguments :
 	- proxies: dict = None — proxy for the connection.
-	- socket_enable: bool = True - whether to connect the socket (if you disconnect it, events and other related things will not work).
+	- socket_enable: bool = True — whether to connect the socket (if you disconnect it, events and other related things will not work).
 	- sock_trace: bool = False — enables WebSocket connection debugging.
+	- user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" — user agent string used for requests.
+	- os: str = "Windows" — operating system identifier.
+	- browser: str = "Firefox" — browser identifier.
+	- device: str = "" — device identifier.
 
 	Data available in the class (besides functions):
 	- Client.token: str — token after authorization.
@@ -21,12 +25,14 @@ class Client(Socket):
 	- Client.account: AccountInfo — a class containing all account information received after connecting to the socket.
 	"""
 
-	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False):
+
+	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False,
+			  user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0", os: str = "Windows", browser: str = "Firefox", device: str = ""):
 		self.socket_enable=socket_enable
-		self.req = Requester()
+		self.req = Requester(user_agent)
 		self.proxies = proxies
 		self.account: AccountInfo = AccountInfo({})
-		Socket.__init__(self, sock_trace=sock_trace)
+		Socket.__init__(self, os, browser, device, sock_trace)
 
 		self.add_handler(EventType.READY, self._on_connect)
 	
@@ -57,6 +63,12 @@ class Client(Socket):
 	@property
 	def userId(self):
 		return self.req.userId
+
+	@property
+	def user_agent(self):
+		return self.req.user_agent
+
+
 
 	def login(self, login: str, password: str, login_source: str = None, gift_code_sku_id: str = None) -> LoginInfo:
 		"""
@@ -187,7 +199,7 @@ class Client(Socket):
 
 		:return: A dictionary containing the user's profile data.
 		"""
-		if not self.token: raise exceptions.UnauthorizedClientError
+		#if not self.token: raise exceptions.UnauthorizedClientError
 		return self.req.make_request(method="GET", endpoint="/users/@me", proxies=self.proxies).json()
 
 

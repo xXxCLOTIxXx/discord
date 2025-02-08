@@ -14,10 +14,11 @@ class Socket(Handler):
 	active: bool = False
 	heartbeat_interval: int = None
 
-	def __init__(self, sock_trace: bool = False):
+	def __init__(self, os: str, browser: str, device: str, sock_trace: bool = False):
 		self.socket_url = "wss://gateway.discord.gg"
 		self.socket = None
 		enableTrace(sock_trace)
+		self.os, self.browser, self.device = os, browser, device
 		Handler.__init__(self)
 
 	def connect(self):
@@ -70,9 +71,9 @@ class Socket(Handler):
 			"d": {
 				"token": self.req.token,
 				"properties": {
-					"os": "Windows",
-					"browser": "Firefox",
-					"device": ""
+					"os": self.os,
+					"browser": self.browser,
+					"device": self.device
 				}
 			}
 		}

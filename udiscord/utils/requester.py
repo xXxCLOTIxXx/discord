@@ -6,19 +6,19 @@ from aiohttp import ClientSession, ClientResponse
 from json import dumps
 
 class Requester:
-	def __init__(self):
+	def __init__(self, user_agent: str):
 		self.web_api = "https://discord.com/api/v9"
 		self.session = Session()
+		self.user_agent = user_agent
 		self.token = None
 		self.userId = None
 
 	def headers(self) -> dict:
 		headers = {
 			"content-type": "application/json",
-			"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0"
+			"user-agent": self.user_agent,
 		}
 		if self.token:headers["authorization"] = self.token
-
 		return headers
 
 
