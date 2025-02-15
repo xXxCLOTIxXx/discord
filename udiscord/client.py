@@ -1,3 +1,5 @@
+from json import loads
+
 from .utils.objects import *
 from .utils.requester import Requester
 from .utils import exceptions
@@ -199,8 +201,8 @@ class Client(Socket):
 
 		:return: A dictionary containing the user's profile data.
 		"""
-		#if not self.token: raise exceptions.UnauthorizedClientError
-		return self.req.make_request(method="GET", endpoint="/users/@me", proxies=self.proxies).json()
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return Profile(self.req.make_request(method="GET", endpoint="/users/@me", proxies=self.proxies).json())
 
 
 	def online_status(self, mode: int = 0) -> str:
@@ -428,3 +430,52 @@ class Client(Socket):
 		""" 
 		if not self.token: raise exceptions.UnauthorizedClientError
 		return self.delete_friend(userId)
+
+
+	def get_my_sessions(self) -> list[Session]:
+		"""
+		`Get a list of sessions (devices on which you were logged in)`
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return [Session(session) for session in self.req.make_request(method="GET", endpoint="/auth/sessions", proxies=self.proxies).json().get("user_sessions", [])]
+
+
+
+	def logout_sessions(self, sessionIds_hashes: list | str, password: str | None = None) -> str:
+		"""
+		`Log out of your account on other devices`
+		:param sessionIds_hashes: hashed ID or list that you can get from the `client.get_my_sessions` function
+		:param password: password for the account (will be used in case of an authentication request)
+		
+
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		if isinstance(sessionIds_hashes, str): sessionIds_hashes = [sessionIds_hashes]
+		data = {
+			"session_id_hashes": sessionIds_hashes
+		}
+		try:
+			return self.req.make_request(method="POST", endpoint=f"/auth/sessions/logout", proxies=self.proxies, body=data).json()
+		except exceptions.TwoFactorAuthenticationRequired as e:
+			mfa_data = loads(str(e)).get("mfa")
+			ticket = mfa_data.get("ticket")
+			methods = mfa_data.get("methods", [])
+
+			for method in methods:
+				if method.get("type") == "password" and password is not None:
+					return self._mfa_finish(ticket=ticket, method="password", data=password)
+			
+			raise e
+
+
+	def _mfa_finish(self, mfa_type: str, ticket: str, data) -> str:
+		"""
+		`Helper function for passing multi-factor authentication.`
+		"""
+		
+		_data = {
+			"mfa_type": mfa_type,
+			"ticket": ticket,
+			"data": data
+		}
+		return self.req.make_request(method="POST", endpoint=f"/mfa/finish", proxies=self.proxies, body=_data).json().get("token")
