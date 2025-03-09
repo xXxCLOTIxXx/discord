@@ -13,23 +13,26 @@ class Requester:
 		self.token = None
 		self.userId = None
 
-	def headers(self) -> dict:
-		headers = {
+	def headers(self, headers: dict = None) -> dict:
+		default_headers = {
 			"content-type": "application/json",
 			"user-agent": self.user_agent,
 		}
-		if self.token:headers["authorization"] = self.token
-		return headers
+		if self.token:
+			default_headers["authorization"] = self.token
+		if headers: default_headers.update(headers)
+		return default_headers
 
 
-	def make_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200, proxies: dict = None) -> Response:
-		response = self.session.request(method, f"{self.web_api}{endpoint}", data=dumps(body) if body is not None else None, headers=self.headers(), proxies=proxies)
-		log.debug(f"[https][{method}][{endpoint}][{response.status_code}]: {body}")
+
+	def make_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200, proxies: dict = None, headers: dict = None, api: str = None) -> Response:
+		response = self.session.request(method, f"{api or self.web_api}{endpoint}", data=dumps(body) if body is not None else None, headers=self.headers(headers), proxies=proxies)
+		log.debug(f"[https][{method}][{api or ''}{endpoint}][{response.status_code}]: {body}")
 		return checkException(response.text) if response.status_code != allowed_code else response
 
 
-	async def make_async_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200) -> ClientResponse:
+	async def make_async_request(self, method: str, endpoint: str, body: dict = None, allowed_code: int = 200, headers: dict = None , api: str = None) -> ClientResponse:
 		async with ClientSession() as asyncSession:
-			response = await asyncSession.request(method, f"{self.web_api}{endpoint}", data=dumps(body) if body else None, headers=self.headers())
+			response = await asyncSession.request(method, f"{api or self.web_api}{endpoint}", data=dumps(body) if body else None, headers=self.headers(headers))
 			log.debug(f"[https][{method}][{endpoint}][{response.status}]: {body}")
 			return checkException(await response.text()) if response.status != allowed_code else response

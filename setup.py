@@ -4,7 +4,7 @@ with open("README.md", "r") as file:
 	long_description = file.read()
 
 link = 'https://github.com/xXxCLOTIxXx/discord/archive/refs/heads/main.zip'
-ver = '1.3.6.5'
+ver = '1.3.6.8'
 
 setup(
 	name = "udiscord",

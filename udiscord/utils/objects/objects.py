@@ -95,3 +95,27 @@ class Guild:
 		self.owner = self.data.get("owner")
 		self.permissions = self.data.get("permissions")
 		self.features = self.data.get("features", [])
+
+
+
+class BannedUser:
+	def __init__(self, data: dict):
+		self.data = data
+
+		user: dict = self.data.get("user", {})
+
+		self.userId = user.get("id")
+		self.username = user.get("username")
+		self.avatar = user.get("avatar")
+		self.global_name = user.get("global_name")
+		self.discriminator = user.get("discriminator")
+		self.public_flags = user.get("public_flags")
+		self.flags = user.get("flags")
+		self.banner = user.get("banner")
+		self.accent_color = user.get("accent_color")
+		self.banner_color = user.get("banner_color")
+		self.collectibles = user.get("collectibles")
+		self.avatar_decoration_data = user.get("avatar_decoration_data")
+		self.primary_guild = user.get("primary_guild")
+		self.clan = user.get("clan")
+		self.reason = data.get("reason")
