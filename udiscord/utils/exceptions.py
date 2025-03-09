@@ -97,6 +97,11 @@ class CaptchaError(DiscordError):
 	"""
 
 
+class TwoFactorAuthenticationRequired(DiscordError):
+	"""
+	If two-factor authentication is required to perform an action (use `client._mfa_finish`)
+	"""
+
 errors = {
 	20028: RateLimited,
 	40062: RateLimited,
@@ -105,7 +110,8 @@ errors = {
 	50109: IncorrectJsonData,
 	10006: UnknownInvitation,
 	50035: USERNAME_BLOCKED_UNVERIFIED,
-	50055: IncorrectServer
+	50055: IncorrectServer,
+	60003: TwoFactorAuthenticationRequired,
 }
 
 def checkException(data):
