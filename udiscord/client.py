@@ -1,4 +1,5 @@
 from json import loads
+from urllib.parse import quote
 
 from .utils.objects import *
 from .utils.requester import Requester
@@ -99,7 +100,9 @@ class Client(Socket):
 		"""
 		self.req.token = token
 		info = self.conditional_start()
-		if not info.token: raise exceptions.InvalidAuthorizationToken(info.data)
+		if not info.token:
+			self.req.token = None
+			raise exceptions.InvalidAuthorizationToken(info.data)
 		self.req.userId = info.userId
 		if self.socket_enable:self.connect()
 		return info
@@ -446,8 +449,6 @@ class Client(Socket):
 		`Log out of your account on other devices`
 		:param sessionIds_hashes: hashed ID or list that you can get from the `client.get_my_sessions` function
 		:param password: password for the account (will be used in case of an authentication request)
-		
-
 		"""
 		if not self.token: raise exceptions.UnauthorizedClientError
 		if isinstance(sessionIds_hashes, str): sessionIds_hashes = [sessionIds_hashes]
@@ -479,3 +480,79 @@ class Client(Socket):
 			"data": data
 		}
 		return self.req.make_request(method="POST", endpoint=f"/mfa/finish", proxies=self.proxies, body=_data).json().get("token")
+	
+
+
+	def kick_guild_member(self, guildId: int, userId: str, reason: str = None) -> int:
+		"""
+		`Kick a member from the guild`
+
+		:param guildId: ID of the guild
+		:param userId: ID of the user to be kicked
+		:param reason: Reason for kicking the user (optional)
+		:return: HTTP status code (204 if successful)
+		"""
+		
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="DELETE", endpoint=f"/guilds/{guildId}/members/{userId}", proxies=self.proxies, allowed_code=204, headers={
+			"x-audit-log-reason": quote(reason) if reason else ''}
+		).status_code
+	
+
+	def ban_guild_member(self, guildId: int, userId: str, reason: str = None, delete_user_messages: int = 0) -> int:
+
+		"""
+		`Ban a member from the guild`
+
+		:param guildId: ID of the guild
+		:param userId: ID of the user to be banned
+		:param reason: Reason for banning the user (optional)
+		:param delete_user_messages: Number of seconds of messages to delete (default: 0)
+		:return: HTTP status code (204 if successful)
+		"""
+
+		if not self.token: raise exceptions.UnauthorizedClientError
+		data = {"delete_message_seconds":delete_user_messages}
+		return self.req.make_request(method="PUT", endpoint=f"/guilds/{guildId}/bans/{userId}", body=data, proxies=self.proxies, allowed_code=204, headers={
+			"x-audit-log-reason": quote(reason) if reason else ''}
+		).status_code
+
+
+	def unban_guild_member(self, guildId: int, userId: str) -> int:
+		"""
+		`Unban a member from the guild`
+		
+		:param guildId: ID of the guild
+		:param userId: ID of the user to be unbanned
+		:return: HTTP status code (204 if successful)
+		"""
+
+		if not self.token: raise exceptions.UnauthorizedClientError
+		raise NotImplementedError
+		#TODO
+		return self.req.make_request(method="DELETE", endpoint=f"/guilds/{guildId}/bans/{userId}", proxies=self.proxies, allowed_code=204).status_code
+
+	def get_guild_bans(self, guildId: int, limit: int = 1000) -> list[BannedUser]:
+		"""
+		`Retrieve a list of banned members in a guild`
+
+		:param guildId: ID of the guild
+		:param limit: Maximum number of bans to retrieve (default: 1000)
+		:return: List of BannedUser objects
+		"""
+
+		if not self.token: raise exceptions.UnauthorizedClientError
+		result = self.req.make_request(method="GET", endpoint=f"/guilds/{guildId}/bans?limit={limit}", proxies=self.proxies).json()
+		return [BannedUser(data) for data in result]
+	
+
+	def get_avatar_image(self, userId: int, avatar: str, size: int = 96) -> bytes:
+		"""
+		`Retrieve a user's avatar image`
+
+		:param userId: ID of the user
+		:param avatar: Avatar hash
+		:param size: Size of the avatar image (default: 96px)
+		:return: Image bytes
+		"""
+		return self.req.make_request(method="GET", endpoint=f"/avatars/{userId}/{avatar}.webp?size={size}", proxies=self.proxies, api="https://cdn.discordapp.com").content
