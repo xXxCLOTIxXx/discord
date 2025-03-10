@@ -1,5 +1,7 @@
 from json import loads
 from urllib.parse import quote
+from typing import BinaryIO
+from random import randint
 
 from .utils.objects import *
 from .utils.requester import Requester
@@ -260,6 +262,44 @@ class Client(Socket):
 		data = {"content": message}
 		return Message(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).json())
 
+	def send_file(self, channelId: int, files: list[BinaryIO]) -> Message:
+
+		"""
+		`Send a file to a channel (file, video, image, ect.)`
+		Args:
+			channelId - Channel ID [TYPE: int]
+			files - List of files ( with open("file", "rb") as file:) [TYPE: list[BinaryIO]]
+		"""
+
+		if not self.token: raise exceptions.UnauthorizedClientError
+
+		attachments = self.upload_chat_media(channelId, files)
+		data = {
+		"content":"",
+		"type": 0,
+		"channel_id": channelId,
+		"attachments": attachments
+		}
+		return Message(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).json())
+	
+	def send_voice_message(self, channelId: int, file: BinaryIO) -> Message:
+		"""
+		`Sending a voice message to a chat (not yet implemented)`
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		raise NotImplementedError
+
+		attachments = self.upload_chat_media(channelId, [file])
+		data = {
+		"content":"",
+		"type": 0,
+		"channel_id": channelId,
+		"attachments": attachments
+		}
+		return Message(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages", body=data, proxies=self.proxies).json())
+
+
+
 	def edit_message(self, channelId: int, message: str, messageId: int) -> Message:
 		"""
 		`Edit message`
@@ -301,6 +341,35 @@ class Client(Socket):
 		return self.req.make_request(method="DELETE", endpoint=f"/channels/{channelId}/messages/{messageId}", allowed_code=204, proxies=self.proxies).status_code
 
 
+	def mark_message_as_unread(self, channelId: int, messageId: int) -> int:
+		"""
+		Marks a specific message as unread in a channel.
+
+		Args:
+			channelId (int): The ID of the channel containing the message.
+			messageId (int): The ID of the message to be marked as unread.
+
+		Returns:
+			int: The HTTP status code of the response.
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/messages/{messageId}/ack", body={"manual":True,"mention_count":0}, proxies=self.proxies).status_code
+
+
+	def typing(self, channelId: int) -> int:
+		"""
+		Sends a typing indicator in a channel.
+
+		Args:
+			channelId (int): The ID of the channel where the typing indicator should be sent.
+
+		Returns:
+			int: The HTTP status code of the response.
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/typing", proxies=self.proxies, allowed_code=204).status_code
+
+
 	def get_invite_info(self, invite_code: str, with_counts: bool = True, with_expiration: bool = True, with_permissions: bool = False) -> Invite:
 		"""
 		`Retrieve information about an invite`
@@ -330,6 +399,37 @@ class Client(Socket):
 		"""
 		if not self.token: raise exceptions.UnauthorizedClientError
 		Invite(self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/invites", proxies=self.proxies, body={"max_age": max_age}).json())
+
+
+	def delete_invite(self, invite_code: str) -> int:
+		"""
+		Deletes an invite from the server.
+
+		Args:
+			invite_code (str): The unique code of the invite to be deleted.
+
+		Returns:
+			int: The HTTP status code of the response.
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return self.req.make_request(method="DELETE", endpoint=f"/invites/{invite_code}", allowed_code=204, proxies=self.proxies).status_code
+
+
+	def get_audit_logs(self, guildId: int, userId: int = None, action_type: int = AuditAction.AllActions, limit: int = 50) -> dict:
+		"""
+		Retrieves audit logs for a specific guild.
+
+		Args:
+			guildId (int): The ID of the guild.
+			userId (int, optional): The ID of a specific user to filter logs by. Defaults to None.
+			action_type (int, AuditAction.Some, optional): The type of action to filter logs by. Defaults to None.
+			limit (int, optional): The maximum number of logs to retrieve. Defaults to 50.
+
+		Returns:
+			AuditLog: A class containing the audit log data.
+		"""
+		if not self.token: raise exceptions.UnauthorizedClientError
+		return AuditLog(self.req.make_request(method="GET", endpoint=f"/guilds/{guildId}/audit-logs?limit={limit}{f'&user_id={userId}' if userId else ''}{f'&action_type={action_type}' if action_type else ''}", proxies=self.proxies).json())
 
 
 	def leave_guild(self, guildId: int, lurking: bool = False) -> int:
@@ -556,3 +656,47 @@ class Client(Socket):
 		:return: Image bytes
 		"""
 		return self.req.make_request(method="GET", endpoint=f"/avatars/{userId}/{avatar}.webp?size={size}", proxies=self.proxies, api="https://cdn.discordapp.com").content
+
+
+	def get_guild_icon(self, guildId: int, icon: str, size: int = 240) -> bytes:
+
+		"""
+		`Retrieve a guild avatar image`
+
+		:param guildId: ID of the guild
+		:param icon: guild icon hash
+		:param size: Size of the icon image (default: 240)
+		:return: Image bytes
+		"""
+
+		return self.req.make_request(method="POST", endpoint=f"/icons/{guildId}/{icon}.webp?size={size}", proxies=self.proxies, api="https://cdn.discordapp.com").content
+	
+
+	def upload_chat_media(self, channelId: int, files: list[BinaryIO]) -> dict:
+		"""
+		`Uploading files to the discord server. auxiliary function`
+		"""
+		f = list()
+		files_data = list()
+		for file in files:
+			fd = file.read()
+			files_data.append(fd)
+			f.append(
+				{"filename":file.name,"file_size":len(fd),"id":str(randint(60, 70))}
+			)
+		
+		result: list[dict] = self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/attachments", proxies=self.proxies, body={"files":f}).json().get("attachments", [])
+		print(result)
+
+		attachments = list()
+
+		for num, attachment in enumerate(result):
+			self.req.make_request(method="PUT", proxies=self.proxies, api=attachment.get("upload_url"), body=files_data[num])
+			attachments.append({
+				"filename": f[num].get("filename"),
+				"id": f[num].get("id"),
+				"uploaded_filename": attachment.get("upload_filename")
+
+			})
+		return attachments
+	
