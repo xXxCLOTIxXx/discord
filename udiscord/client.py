@@ -2,10 +2,11 @@ from json import loads
 from urllib.parse import quote
 from typing import BinaryIO
 from random import randint
+from os.path import splitext
 
 from .utils.objects import *
 from .utils.requester import Requester
-from .utils import exceptions
+from .utils import exceptions, get_wav_audio_metadata, get_ogg_audio_metadata
 
 from .ws import Socket, EventType
 
@@ -284,12 +285,32 @@ class Client(Socket):
 	
 	def send_voice_message(self, channelId: int, file: BinaryIO) -> Message:
 		"""
-		`Sending a voice message to a chat (not yet implemented)`
+		`Sending a voice message to a chat`
+
+		`Args:`
+			channelId - Channel ID [TYPE: int]
+			file - audio file( with open("file", "rb") as file:) [TYPE: list[BinaryIO]]
+
+		`Supported audio files:`
+			.wav
+			.ogg
 		"""
 		if not self.token: raise exceptions.UnauthorizedClientError
-		raise NotImplementedError
+		filename = getattr(file, 'name', None)
+		extension = splitext(filename)[1] if filename else None
+		
+		match (extension):
+			case '.wav':
+				duration_secs, waveform = get_wav_audio_metadata(file)
+			case '.ogg':
+				duration_secs, waveform = get_ogg_audio_metadata(file)
+			case _:
+				raise exceptions.WrongAudioType(f"Unsupported file type: {extension}")				
 
 		attachments = self.upload_chat_media(channelId, [file])
+		attachments[0]["duration_secs"] = duration_secs
+		attachments[0]["waveform"] = waveform
+
 		data = {
 		"content":"",
 		"type": 0,
@@ -686,7 +707,6 @@ class Client(Socket):
 			)
 		
 		result: list[dict] = self.req.make_request(method="POST", endpoint=f"/channels/{channelId}/attachments", proxies=self.proxies, body={"files":f}).json().get("attachments", [])
-		print(result)
 
 		attachments = list()
 

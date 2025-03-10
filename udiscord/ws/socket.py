@@ -77,8 +77,15 @@ class Socket(Handler):
 				}
 			}
 		}
-		try:self.send(identify_payload)
-		except Exception as e:log.critical("[socket][start] Failed connect to discord socket")
+		for i in range(5):
+			try:
+				self.send(identify_payload)
+				break
+			except Exception as e:
+				log.error("[socket][start] Failed connect to discord socket. reconnecting...")
+				sleep(1.5)
+		else:
+			log.critical("[socket][start] Failed connect to discord socket.")
 
 		while True:
 			if not self.heartbeat_interval: continue
