@@ -59,7 +59,7 @@ If you prefer not to manually clone the repository and just want to install the 
 
 ---
 
-### 3. Install via `pip` from PyPI (!!!!! Currently unavailable)
+### 3. Install via `pip` from PyPI
 
 For a simpler installation, you can install UDISCORD directly from PyPI (Python Package Index)
 
