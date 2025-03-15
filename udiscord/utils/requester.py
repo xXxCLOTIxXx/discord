@@ -31,8 +31,8 @@ class Requester:
 		return checkException(response.text) if response.status_code != allowed_code else response
 
 
-	async def make_async_request(self, method: str, endpoint: str = None, body: dict = None, allowed_code: int = 200, headers: dict = None , api: str = None) -> ClientResponse:
+	async def make_async_request(self, method: str, endpoint: str = None, body: dict | bytes = None, allowed_code: int = 200, headers: dict = None , api: str = None) -> ClientResponse:
 		async with ClientSession() as asyncSession:
-			response = await asyncSession.request(method, f"{api or self.web_api}{endpoint or ''}", data=dumps(body) if body else None, headers=self.headers(headers))
-			log.debug(f"[https][{method}][{endpoint or ''}][{response.status}]: {body}")
+			response = await asyncSession.request(method, f"{api or self.web_api}{endpoint or ''}", data=dumps(body) if isinstance(body, dict) else body if body is not None else None, headers=self.headers(headers))
+			log.debug(f"[https][{method}][{endpoint or ''}][{response.status}]: {len(body) if isinstance(body, bytes) else body}")
 			return checkException(await response.text()) if response.status != allowed_code else response

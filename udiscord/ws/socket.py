@@ -6,7 +6,7 @@ from ujson import dumps, loads
 from ..utils.requester import Requester
 from .. import log
 from .socket_handler import Handler
-from traceback import print_exc
+from traceback import format_exc
 
 class Socket(Handler):
 	heartbeat_started: bool = False
@@ -14,9 +14,10 @@ class Socket(Handler):
 	active: bool = False
 	heartbeat_interval: int = None
 
-	def __init__(self, os: str, browser: str, device: str, sock_trace: bool = False):
+	def __init__(self, os: str, browser: str, device: str, sock_trace: bool = False, detailed_error: bool = False):
 		self.socket_url = "wss://gateway.discord.gg"
 		self.socket = None
+		self.detailed_error = detailed_error
 		enableTrace(sock_trace)
 		self.os, self.browser, self.device = os, browser, device
 		Handler.__init__(self)
@@ -37,7 +38,7 @@ class Socket(Handler):
 			self.active=True
 			log.debug(f"[socket][start] Socket Started")
 		except Exception as e:
-			log.error(f"[socket][start] Error while starting Socket : {e}")
+			log.error(f"[socket][start] Error while starting Socket : {e}{'' if not self.detailed_error else f'\n{format_exc()}'}")
 
 
 	def disconnect(self):
@@ -49,7 +50,7 @@ class Socket(Handler):
 			self.active = False
 			log.debug(f"[socket][close] Socket closed")
 		except Exception as e:
-			log.error(f"[socket][close] Error while closing Socket : {e}")
+			log.error(f"[socket][close] Error while closing Socket : {e}{'' if not self.detailed_error else f'\n{format_exc()}'}")
 
 
 	def resolve(self, ws, data):
@@ -60,8 +61,7 @@ class Socket(Handler):
 				return
 			self.handle_data(data)
 		except Exception as e:
-			log.warning(f"[socket][resolve] Error while resolve data : {e}")
-			print_exc()
+			log.warning(f"[socket][resolve] Error while resolve data : {e}{'' if not self.detailed_error else f'\n{format_exc()}'}")
 
 
 	def start_heartbeat(self):
@@ -77,8 +77,15 @@ class Socket(Handler):
 				}
 			}
 		}
-		try:self.send(identify_payload)
-		except Exception as e:log.critical("[socket][start] Failed connect to discord socket")
+		for i in range(5):
+			try:
+				self.send(identify_payload)
+				break
+			except Exception as e:
+				log.error("[socket][start] Failed connect to discord socket. reconnecting...")
+				sleep(1.5)
+		else:
+			log.critical("[socket][start] Failed connect to discord socket.")
 
 		while True:
 			if not self.heartbeat_interval: continue

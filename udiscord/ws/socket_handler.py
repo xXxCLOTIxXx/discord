@@ -1,7 +1,6 @@
 from .. import log
-from ..utils.objects import AccountInfo, Event, Message
-from ..utils.objects.event.event_types import EventType
-
+from ..utils.objects import AccountInfo, Event, Message, EventType
+from traceback import format_exc
 
 class Handler:
     handlers: dict = {}
@@ -36,7 +35,7 @@ class Handler:
                         else:
                             func(data)
                     except Exception as e:
-                        log.error(f"[event][{func}]Error: {e}")
+                        log.error(f"[event][{func}]Error: {e}{'' if not self.detailed_error else f'\n{format_exc()}'}")
 
     def event(self, type: str):
         """

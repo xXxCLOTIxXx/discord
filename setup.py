@@ -4,7 +4,7 @@ with open("README.md", "r") as file:
 	long_description = file.read()
 
 link = 'https://github.com/xXxCLOTIxXx/discord/archive/refs/heads/main.zip'
-ver = '1.3.7'
+ver = '1.3.7.2'
 
 setup(
 	name = "udiscord",
@@ -30,7 +30,8 @@ setup(
 		"official",
 		"sync",
 		"async",
-		"udiscord"
+		"udiscord",
+		"discord-self-bot"
 	],
 	install_requires = [
 		"requests",

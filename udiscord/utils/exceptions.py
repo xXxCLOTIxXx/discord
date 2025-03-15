@@ -24,6 +24,12 @@ class WrongModeError(LibraryError):
 	"""
 
 
+class WrongAudioType(LibraryError):
+	"""
+	An incorrect or unexpected mode is set.
+	"""
+
+
 class ArgumentNotSpecifiedError(LibraryError):
 	"""
 	A required argument was not provided.
