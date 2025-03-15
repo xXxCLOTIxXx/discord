@@ -6,9 +6,7 @@
     <a href="https://github.com/xXxCLOTIxXx/discord/releases">
         <img src="https://img.shields.io/github/v/release/xXxCLOTIxXx/discord" alt="GitHub release">
     </a>
-    <a href="https://github.com/xXxCLOTIxXx/discordy/blob/main/LICENSE">
-        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license">
-    </a>
+<a href="https://pypi.org/project/udiscord/"><img src="https://img.shields.io/pypi/v/udiscord.svg" alt="Pypi version" />
 </p>
 
 ---
