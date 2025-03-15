@@ -8,7 +8,7 @@ from .utils.objects import *
 from .utils.requester import Requester
 from .utils import exceptions, get_wav_audio_metadata, get_ogg_audio_metadata
 
-from .ws import Socket, EventType
+from .ws import Socket
 
 class Client(Socket):
 	"""
@@ -20,6 +20,7 @@ class Client(Socket):
 	- proxies: dict = None — proxy for the connection.
 	- socket_enable: bool = True — whether to connect the socket (if you disconnect it, events and other related things will not work).
 	- sock_trace: bool = False — enables WebSocket connection debugging.
+	- detailed_error: bool = False — more detailed error output mode
 	- user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" — user agent string used for requests.
 	- os: str = "Windows" — operating system identifier.
 	- browser: str = "Firefox" — browser identifier.
@@ -32,15 +33,15 @@ class Client(Socket):
 	"""
 
 
-	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False,
+	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False, detailed_error: bool = False,
 			  user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0", os: str = "Windows", browser: str = "Firefox", device: str = ""):
 		self.socket_enable=socket_enable
 		self.req = Requester(user_agent)
 		self.proxies = proxies
 		self.account: AccountInfo = AccountInfo({})
-		Socket.__init__(self, os, browser, device, sock_trace)
+		Socket.__init__(self, os, browser, device, sock_trace, detailed_error)
 
-		self.add_handler(EventType.READY, self._on_connect)
+		self.add_handler(EventType.READY, self.__on_connect)
 	
 
 	def __repr__(self) -> str:
@@ -59,7 +60,7 @@ class Client(Socket):
 
 
 
-	def _on_connect(self, event: AccountInfo):
+	def __on_connect(self, event: AccountInfo):
 		self.account = event
 
 	@property
