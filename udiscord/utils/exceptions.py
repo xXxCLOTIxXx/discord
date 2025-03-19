@@ -50,6 +50,18 @@ class UnknownError(LibraryError):
 #=====================================================
 
 
+class InvalidSession(DiscordError):
+	"""
+	Called when Discord sends a session error.
+	"""
+
+
+class NeedToReconnect(DiscordError):
+	"""
+	Called when Discord requires a socket reconnection.
+	"""
+
+
 class RateLimited(DiscordError):
 	"""
 	Too many requests have been sent in a short period.

@@ -33,13 +33,13 @@ class Client(Socket):
 	"""
 
 
-	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False, detailed_error: bool = False,
+	def __init__(self, proxies: dict = None, socket_enable: bool = True, sock_trace: bool = False, detailed_error: bool = False, socket_auto_reconnect: bool = True,
 			  user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0", os: str = "Windows", browser: str = "Firefox", device: str = ""):
 		self.socket_enable=socket_enable
 		self.req = Requester(user_agent)
 		self.proxies = proxies
 		self.account: AccountInfo = AccountInfo({})
-		Socket.__init__(self, os, browser, device, sock_trace, detailed_error)
+		Socket.__init__(self, os, browser, device, sock_trace, detailed_error, socket_auto_reconnect)
 
 		self.add_handler(EventType.READY, self.__on_connect)
 	
@@ -604,6 +604,13 @@ class Client(Socket):
 		return self.req.make_request(method="POST", endpoint=f"/mfa/finish", proxies=self.proxies, body=_data).json().get("token")
 	
 
+	def ignore_user(self, userId: int) -> int:
+		'''#TODO'''
+		return self.req.make_request(method="PUT", endpoint=f"/users/@me/relationships/{userId}/ignore", proxies=self.proxies, allowed_code=204).status_code
+
+	def unignore_user(self, userId: int) -> int:
+		'''#TODO'''
+		return self.req.make_request(method="DELETE", endpoint=f"/users/@me/relationships/{userId}/ignore", proxies=self.proxies, allowed_code=204).status_code
 
 	def kick_guild_member(self, guildId: int, userId: str, reason: str = None) -> int:
 		"""

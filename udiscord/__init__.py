@@ -24,7 +24,7 @@ __title__ = 'udiscord'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2025 Xsarz'
-__version__ = '1.3.7.2'
+__version__ = '1.3.7.2.2'
 
 
 from requests import get

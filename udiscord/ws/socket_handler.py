@@ -12,9 +12,9 @@ class Handler:
         data = _data.get('d')
         log.debug(f"[socket][received]: t: {t} op: {op} s: {s}")
         if t:
-            self.call(data, t)
+            self.call(data, t, op)
 
-    def call(self, data: dict, type: str):
+    def call(self, data: dict, type: str, op: int):
         if type in self.handlers or EventType.ANY in self.handlers:
             match type:
                 case EventType.READY:
@@ -24,7 +24,7 @@ class Handler:
                 case EventType.MESSAGE_UPDATE:
                     data = Message(data)
                 case _:
-                    data = Event(data, type)
+                    data = Event(data, type, op)
             for i in (EventType.ANY, type):
                 if i not in self.handlers:
                     continue
